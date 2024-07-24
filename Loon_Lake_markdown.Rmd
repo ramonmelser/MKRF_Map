@@ -1,0 +1,220 @@
+---
+title: "MGEM Loon Lake Mixed Pixel Lab"
+author:
+  - "Ramon Melser - FCOR 599 STA"
+date: "24/07/2024"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(leaflet)
+library(raster)
+library(htmlwidgets)
+library(terra)
+library(leafem)
+#library(rgdal)
+library(sp)
+library(sf)
+library(DT)
+library(kableExtra)
+library(leaflet.extras)
+
+```
+
+Spoiler Alert: R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+```{r files, echo=FALSE, include=FALSE}
+
+Planet <- brick("D:/Sync/MGEM_Loon_Lake/Planet_RGB.tif")
+Sentinel <- brick("D:/Sync/MGEM_Loon_Lake/Sentinel_2_RGB.tif")
+Landsat <- brick("D:/Sync/MGEM_Loon_Lake/Landsat_8_RGB.tif")
+
+Plots <- vect("D:/Sync/MGEM_Loon_Lake/plots/MGEM_plots.shp")
+#Note that all inpuit data must be in EPSG 4326 in order to work with leaflet
+Plots <- terra::project(Plots, "+init=EPSG:4326")
+
+
+```
+
+
+```{r crop, echo=FALSE, include=FALSE}
+Custom_extent <- extent(530000, 530700, 5459600, 5460700) #Play around with the size of the rasters as deemed appropriate for the purposes of the exercise. 
+
+MGEM_Planet <- crop(Planet, Custom_extent)
+MGEM_Sentinel <- crop(Sentinel, Custom_extent)
+MGEM_Landsat <- crop(Landsat, Custom_extent)
+ 
+```
+
+``` {r NDVI, echo=FALSE}
+# Normalized Difference Vegetation Index (NDVI) Function
+ndvi_func <- function(img, nirBand, redBand){
+  ndvi <- (img[[nirBand]] - img[[redBand]]) / (img[[nirBand]] + img[[redBand]])
+  return(ndvi)
+}
+
+# NDVI Creation
+#(Note: the band numbers here are based on 4-band composites that only include RGB and NIR)
+Planet_NDVI <- ndvi_func(MGEM_Planet, 4, 3)
+Sentinel_NDVI <- ndvi_func(MGEM_Sentinel, 4, 3)
+Landsat_NDVI <- ndvi_func(MGEM_Landsat, 4, 3)
+
+
+```
+
+```{r leaflet, echo=FALSE, include=FALSE}
+
+#Custom color pallets for the NDVI Images
+planet_pal <- colorNumeric(c("#FF0000", "#FFFF00", "#006400"), values(Planet_NDVI),
+                   na.color = "transparent")
+sentinel_pal <- colorNumeric(c("#FF0000", "#FFFF00", "#006400"), values(Sentinel_NDVI),
+                   na.color = "transparent")
+landsat_pal <- colorNumeric(c("#FF0000", "#FFFF00", "#006400"), values(Landsat_NDVI),
+                   na.color = "transparent")
+
+#Leaflet 
+m = leaflet(Plots, width = 700, height = 1000) %>% #create your leaflet with plot locations
+  addTiles() %>%
+  #adding the 'label' option will create pop-up plot labels for the circle markers
+  addCircleMarkers(label = c("Trail Head",
+                             "Plot 2", "Plot 3",
+                             "Plot 4", "Plot 1",
+                             "Plot 6", "Plot 5")) %>%
+  #Add your RGB Images
+  addRasterRGB(MGEM_Planet, 3,2,1, group = "Planet") %>%
+  addRasterRGB(MGEM_Sentinel, 3,2,1, group = "Sentinel") %>%
+  addRasterRGB(MGEM_Landsat, 3,2,1, group = "Landsat") %>%
+  
+  #Add your single band tifs, and add custom color pallet
+  addRasterImage(Planet_NDVI, colors = planet_pal, group = "Planet NDVI") %>%
+  addLegend(pal = planet_pal ,values = values(Planet_NDVI), group = "Planet NDVI", opacity = 1) %>%
+  
+  addRasterImage(Sentinel_NDVI, colors = sentinel_pal, group = "Sentinel NDVI") %>%
+  addLegend(pal = sentinel_pal ,values = values(Sentinel_NDVI), group = "Sentinel NDVI", opacity = 1) %>%
+
+  addRasterImage(Landsat_NDVI, colors = landsat_pal, group = "Landsat NDVI") %>%
+  addLegend(pal = landsat_pal ,values = values(Landsat_NDVI), group = "Landsat NDVI", opacity = 1) %>%
+  
+#having given all your files 'group' names, you can now customize how they will interact with each other on the leaflet interface. 
+  
+  addLayersControl(
+    baseGroups = c("Planet", "Sentinel", "Landsat"), #basegroups can only be toggled one at a time
+    overlayGroups = c("Planet NDVI", "Sentinel NDVI", "Landsat NDVI"), #overlaygroups can be toggled on simultaneously
+  options = layersControlOptions(collapsed = FALSE))%>% #if true, the layers control will appear as a pop-up rather than a set toggle-legend
+
+  #Add a scale bar
+  addScaleBar(position = c("bottomleft")) %>%
+  
+  #"Hide' groups so they do not initially appear toggled on
+  hideGroup("Sentinel NDVI")%>%
+  hideGroup("Planet NDVI")%>%
+  hideGroup("Landsat NDVI")
+
+m <- addControlGPS(m, options = gpsOptions(position = "topleft", activate = TRUE, autoCenter = TRUE, maxZoom = 10, setView = TRUE))
+
+```
+
+## Spatial Resolution and Mixed Pixels
+
+Landscape-level analysis of satellite data often requires that pixels be classified. For example, quantifying changes in forest cover across time requires identifying which pixels represent forest. Images can be classified into only a few classes (e.g. forest or non-forest), or many classes representing complex landscapes. Mixed pixels, which record reflectance from more than one cover type, are problematic for classification. In this exercise, you will simulate the spatial resolutions of three different satellite remote sensing platforms: PlanetScope, Sentinel2, and Landsat. By mapping out “pixels” on a heterogeneous landscape, you will demonstrate how changing the spatial resolution of remote sensing imagery affects our ability to classify it. The main goals for the day are a) to experience firsthand the spatial resolution of some global satellite datasets, and b) to understand the limitations of representing complex land cover as a square pixel.
+
+
+## Part 1
+Create your own 'pixels' on the ground and observe the landscape features that each one contains. 
+
+1. Break into six groups.
+2. With your group members, locate your study site, which will be marked with a cone.
+3.	Map out a 3-meter PlanetScope pixel around the cone, using a compass and the transect tape provided. Orient your imaginary grid towards true north. Mark the corners of the pixel with flags. (HINT: the magnetic declination at Loon Lake is +16°). You will have to adjust your compass accordingly. If you are using a compass app on your phone, make sure that true north is enabled.)
+4.	Repeat step 3 for a 10-meter Sentinel 2 pixel and a 30-meter Landsat pixel.
+5.	Decide if the pixel is mixed or homogenous.
+6.	Note the features visible on the landscape. 
+7.	Consult your group and come up with a landcover class to assign to each pixel. This step is somewhat subjective; you can disagree with your group members!
+
+![Plot Layouts](C:/Users/melser/Pictures/plots.png){width=50%}
+<br/>
+<br/>
+
+
+
+#### Part 1 Discussion Questions
+Add your answers to the table
+
+1. Is there one feature which is "dominant" on the landscape?
+2)	Imagine each pixel in the year 2000. Look for clues about the site’s history. Do you think that you would have assigned it to a different landcover class 20 years ago?
+3)	Is the value of a pixel determined equally by reflectance from the center and reflectance from the corners? In other words, does the sensor “see” the entire area represented by a pixel? 
+
+<br/>
+
+Once you are done filling out the table by the end of the lab, click the 'pdf' button to export your table. 
+
+```{r table, echo=FALSE}
+
+
+table <- read.csv("D:/Sync/MGEM_Loon_Lake/Loon_Lake_Table.csv")
+
+DT::datatable(table,
+              rownames = FALSE,
+              class = 'cell-border stripe',
+              colnames = c("Platform", "Site#", "Mixed or Homogenous", "Landscape Features", "Landcover Class", "Description of Pixel", "Estimated NDVI"),
+              extensions = 'Buttons',
+              options = list(dom = 'Bfrtip',buttons = c('pdf')),
+              editable = TRUE) %>%
+  formatStyle('Plot..',
+              target = 'row',
+              backgroundColor = styleEqual(c(1,2,3,4,5,6), c("gray", "white", "gray", "white", "gray", "white")))
+
+```
+
+## Part 2
+Compare your observations to real satellite imagery of the study area and consider the spectral values of the real pixel corresponding to each site.
+
+1)	Locate each site on the images of the study area and identify the pixel in the imagery corresponding to the site.
+2)	Describe the pixel in the datasheet. What is its color? Does it have high or low reflectance? (If you’re color blind, don’t worry about wavelength. Just consider how much light is being reflected.)
+3)	Look at the NDVI images and estimate the value for the pixel at each site. 
+
+
+```{r map, echo=FALSE}
+#m
+
+activateGPS(m)
+```
+
+<br/>
+```{r platform table, echo=FALSE}
+
+table <- read.csv("D:/Sync/MGEM_Loon_Lake/Platforms.csv")
+
+DT::datatable(table,
+              rownames = FALSE,
+              class = 'cell-border stripe',
+              colnames = c("Platform", "Date of Acquisition", "Spatial Resolution", "Revisit Time", "Bands", "Number of Satellites", "Operating Since", "Free?"))
+
+
+```
+
+
+
+#### Part 2 Discussion Questions
+
+1)	Why do you think that the range of NDVI values differs so much between sensors? 
+
+2)	What are the brightest and darkest areas in each image?
+
+
+<br/>
+<br/>
+
+
+
+
+
+
+
