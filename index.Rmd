@@ -5,7 +5,7 @@ date: "2024-07-24"
 output: html_document
 ---
 
-
+![](D:/Sync/MGEM_Loon_Lake/g10.png){width=100%}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
