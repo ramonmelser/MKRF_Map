@@ -1,8 +1,26 @@
 ---
 title: "MGEM Mixed Pixel Lab"
-format: html
+format:
+  html:
+    other-links:
+      - text: Landsat Program
+        href: https://landsat.gsfc.nasa.gov/
+      - text: Sentinel-2 Program
+        href: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2
+      - text: Planet Program
+        href: https://www.planet.com/
+    code-links:
+      - text: GitHub Repo
+        icon: file-code
+        href: https://github.com/ramonmelser/MKRF_Map
+
 theme: flatly
 editor: visual
+toc: true
+toc-location: left
+number-sections: false
+number-depth: 1
+
 ---
 
 ![](images/g10.png)
@@ -24,7 +42,9 @@ library(leaflet.extras2)
 
 Welcome to the Malcolm Knapp Research Forest! During your time in the MGEM program, you will be exposed to a wide range of remote sensing and GIS technologies, data sets and workflows that equip you to answer questions about our environment. Remote sensing data sets can typically be characterized by three core elements: temporal resolution, spectral resolution, and spatial resolution. Temporal resolution refers to the revisit time of a sensor, aka how long it takes to complete full coverage of the earth for satellite based sensors. Spectral resolution refers to unique portions of the electromagnetic spectrum captured by a sensor. And finally, the spatial resolution of a sensor refers to the dimensions of a pixel captured by that sensor. Depending on instrument design, satellite-based remote sensing platforms may provide data with resolutions ranging from coarse (i.e. 50km SMOS Pixels) to fine scales (i.e. 3m Planetscope).
 
-### Image Classification & Mixed Pixel Problems
+# Introduction
+
+### Image Classification & Mixed Pixel Problems {.unlisted}
 
 Landscape-level analysis of satellite data often requires that pixels be classified using comprehensive categories or descriptors. For example, quantifying changes in forest cover over time requires identifying which pixels represent forest, and which do not. Images can be classified into only a few classes (e.g. forest or non-forest), or many classes representing more complex landscapes (e.g. deciduous, broadleaf, mixed-wood, treed wetland). Depending on the spatial resolution of the data set you are working with, the land cover composition within a pixel may comprise more than one of these classes. This is commonly referred to as the 'Mixed Pixel Problem', and introduces uncertainty in classification tasks. In this exercise, you will simulate the spatial resolutions of three popular satellite remote sensing platforms: PlanetScope, Sentinel-2, and Landsat.
 
@@ -45,7 +65,7 @@ DT::datatable(table,
 
 ```
 
-### Part 1
+# Pixel Mapping
 
 The first part of this exercise involves mapping out your own 'pixels' in the MKRF research forest, and observing the landscape features that each of these pixels contain. For this exercise, you need to form into 6 groups, which will be provided with a compass and transect tape. You will also need to assign 1 note-taker to mark down your observations in the field. When you are ready:
 
@@ -91,7 +111,7 @@ DT::datatable(table,
 
 ```
 
-### Part 2
+# Imagery Comparison
 
 Now that you have taken some detailed field notes for each of the sites, you will compare your observations to the Landsat, Sentinel-2 and Planetscope satellite imagery of MKRF. As you compare, consider the spectral values of the different platform pixels corresponding to each site.
 
@@ -218,7 +238,7 @@ b <- leaflet(Plots, width = 600, height = 600) %>%
 b
 ```
 
-### Part 3
+# Unsupervised Classification
 
 Now that we have some understanding of the mixed pixel problem across various pixel resolutions, let's investigate how these principles impact our ability to classify remote sensing data into meaningful classes. As you will learn in GEM 520, there are two core classification approaches: supervised and unsupervised classification. In brief, supervised classification leverages a set of training data to classify pixels. For example, you may attribute some point data with land cover classes based on a field survey or photo interpretation, and then train a model which assigns forested VS non-forested classes based on NDVI values. Unsupervised classification instead classifies an image based on groups of pixels which share spectral properties, which are assigned labels afterwards. In the example below, we have performed an unsupervised classification on the MKRF Planetscope data (RGB & NIR bands). In your groups, compare the classification to the RGB imagery, and assign some meaningful names to each identified class in the provided table. Once you have completed this step, zoom in to the plots we visited yesterday, and answer the discussion questions.
 
