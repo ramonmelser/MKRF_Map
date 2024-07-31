@@ -2,14 +2,14 @@
 title: "MGEM Mixed Pixel Lab"
 format:
   html:
-    other-links:
+    Satellite-links:
       - text: Landsat Program
         href: https://landsat.gsfc.nasa.gov/
       - text: Sentinel-2 Program
         href: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2
       - text: Planet Program
         href: https://www.planet.com/
-    code-links:
+    Source-code-links:
       - text: GitHub Repo
         icon: file-code
         href: https://github.com/ramonmelser/MKRF_Map
