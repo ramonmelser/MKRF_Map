@@ -39,7 +39,7 @@ library(leaflet.extras2)
 
 ```
 
-Welcome to the Malcolm Knapp Research Forest! During your time in the MGEM program, you will be exposed to a wide range of remote sensing and GIS technologies, data sets and workflows that equip you to answer questions about our environment. Remote sensing data sets can typically be characterized by three core elements: temporal resolution, spectral resolution, and spatial resolution. Temporal resolution refers to the revisit time of a sensor, aka how long it takes to complete full coverage of the earth for satellite based sensors. Spectral resolution refers to unique portions of the electromagnetic spectrum captured by a sensor. And finally, the spatial resolution of a sensor refers to the dimensions of a pixel captured by that sensor. Depending on instrument design, satellite-based remote sensing platforms may provide data with resolutions ranging from coarse (i.e. 50km SMOS Pixels) to fine scales (i.e. 3m Planetscope).
+Welcome to the Malcolm Knapp Research Forest! During your time in the MGEM program, you will be exposed to a wide range of remote sensing and GIS technologies, data sets and workflows that equip you to answer questions about our environment. Remote sensing data sets can typically be characterized by three core elements: temporal resolution, spectral resolution, and spatial resolution. Temporal resolution refers to the revisit time of a sensor, aka how long it takes to complete full coverage of the earth for satellite based sensors. Spectral resolution refers to unique portions of the electromagnetic spectrum captured by a sensor. And finally, the spatial resolution of a sensor refers to the dimensions of a pixel captured by that sensor. Depending on satellite orbit and instrument design, the spatial resolution (pixel size) of remote sensing datasets vary from coarse (i.e. 50km SMOS Pixels) to fine scales (i.e. 3m Planetscope).To learn more about the different satellite platforms and their purpose, orbits and owners, I recommend browsing the [SatelliteXplorer](https://geoxc-apps.bd.esri.com/space/satellite-explorer/)!
 
 # Introduction
 
@@ -70,10 +70,11 @@ The first part of this exercise involves mapping out your own 'pixels' in the MK
 
 1.  Locate your first study site on the interactive map in Part 2. In the field, these sites will be marked with a cone.You can also enable your live GPS location on the map in case you are not sure if you are in the right place. Once you arrive at the plot, record the plot center using the provided GPS
 2.  Map out a 3-meter PlanetScope pixel around the cone, using a compass and the transect tape provided. Orient your imaginary grid towards true north. Mark the corners of the pixel with your group members. (HINT: the magnetic declination at Loon Lake is +16°). You will have to adjust your compass accordingly. If you are using a compass app on your phone, make sure that true north is enabled.)
-3.  Repeat step 3 for a 10-meter Sentinel 2 pixel and a 30-meter Landsat pixel.
-4.  Decide if the pixel is mixed or homogeneous and note down your response.
-5.  As a group, discuss and record the features visible on the landscape.
-6.  Based on the recorded features, come up with a land cover class to assign to for each platform, in each pixel. This step is somewhat subjective; you can disagree with your group members!
+3.  Decide if the pixel is mixed or homogeneous and note down your response.
+4.  As a group, discuss and record the features visible on the landscape.
+5.  Based on the recorded features, come up with a land cover class to assign to for each platform, in each pixel. This step is somewhat subjective; you can disagree with your group members!
+6.  Repeat these steps for a 10-meter Sentinel 2 pixel and a 30-meter Landsat pixel.
+7.  Once you have finished the steps above at your site, locate your next plot and repeat.
 
 ![](images/plots.png){width="400"}
 
@@ -112,10 +113,10 @@ DT::datatable(table,
 
 # Imagery Comparison
 
-Now that you have taken some detailed field notes for each of the sites, you will compare your observations to the Landsat, Sentinel-2 and Planetscope satellite imagery of MKRF. As you compare, consider the spectral values of the different platform pixels corresponding to each site.
+Now that you have taken some detailed field notes for each of the sites, you will compare your observations to the Landsat, Sentinel-2 and Planetscope satellite imagery of MKRF, visualized here using the Red (R), Green (G) and Blue (B) bands as a 'True Colour' composite. The map slider also allows you to visualize the Normalized Difference Vegetation Index (NDVI), and indicator of vegetation vigor. As you compare, consider the spectral values of the different platform pixels corresponding to each site.
 
 1)  Locate each site on the images of the study area and identify the pixel in the imagery corresponding to the site.
-2)  Describe the pixel in the datasheet. What is its color? Does it have high or low reflectance? (If you’re color blind, don’t worry about wavelength. Just consider how much light is being reflected.)
+2)  Describe the pixel in the datasheet. What is its color?
 3)  Look at the NDVI images and estimate the value for the pixel at each site.
 
 #### Discussion Questions
@@ -274,11 +275,16 @@ result <- crop(result, MKRF, mask=TRUE)
 
 result <- as.factor(result)
 
+#writeRaster(result, "D:/Sync/MGEM_Loon_Lake/class_planet.tif")
+
 ```
 
 ```{r leaflet2, echo=FALSE, include=FALSE}
 
-classified_pal <- colorFactor(c("#081d58", "#225ea8", "#f7fcb9", "#006d2c", "#238b45", "#00441b", "#662506"), values(result),na.color = "transparent")
+#result <- rast("D:/Sync/MGEM_Loon_Lake/class_planet.tif")
+
+
+classified_pal <- colorFactor(c("#662506", "#f7fcb9", "#41ab5d", "#fdb462", "#081d58", "#006d2c","#00441b"), values(result), na.color = "transparent")
 
 e <- leaflet(Plots, width = 600, height = 600) %>%
   
