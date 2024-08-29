@@ -2,14 +2,14 @@
 title: "MGEM Mixed Pixel Lab"
 format:
   html:
-    Satellite-links:
+    other-links:
       - text: Landsat Program
         href: https://landsat.gsfc.nasa.gov/
       - text: Sentinel-2 Program
         href: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2
       - text: Planet Program
         href: https://www.planet.com/
-    Source-code-links:
+    code-links:
       - text: GitHub Repo
         icon: file-code
         href: https://github.com/ramonmelser/MKRF_Map
@@ -20,7 +20,6 @@ toc: true
 toc-location: left
 number-sections: false
 number-depth: 1
-
 ---
 
 ![](images/g10.png)
@@ -69,7 +68,7 @@ DT::datatable(table,
 
 The first part of this exercise involves mapping out your own 'pixels' in the MKRF research forest, and observing the landscape features that each of these pixels contain. For this exercise, you need to form into 6 groups, which will be provided with a compass and transect tape. You will also need to assign 1 note-taker to mark down your observations in the field. When you are ready:
 
-1.  Locate your first study site on the interactive map in Part 2. In the field, these sites will be marked with a cone.You can also enable your live GPS location on the map in case you are not sure if you are in the right place.
+1.  Locate your first study site on the interactive map in Part 2. In the field, these sites will be marked with a cone.You can also enable your live GPS location on the map in case you are not sure if you are in the right place. Once you arrive at the plot, record the plot center using the provided GPS
 2.  Map out a 3-meter PlanetScope pixel around the cone, using a compass and the transect tape provided. Orient your imaginary grid towards true north. Mark the corners of the pixel with your group members. (HINT: the magnetic declination at Loon Lake is +16°). You will have to adjust your compass accordingly. If you are using a compass app on your phone, make sure that true north is enabled.)
 3.  Repeat step 3 for a 10-meter Sentinel 2 pixel and a 30-meter Landsat pixel.
 4.  Decide if the pixel is mixed or homogeneous and note down your response.
@@ -96,7 +95,7 @@ table <- read.csv("D:/Sync/MGEM_Loon_Lake/Loon_Lake_Table.csv")
 DT::datatable(table,
               rownames = FALSE,
               class = 'cell-border stripe',
-              colnames = c("Platform", "Site#", "Mixed or Homogenous",
+              colnames = c("Platform", "Site#", "Lat/Lon" ,"Mixed or Homogenous",
                            "Landscape Features", "Landcover Class",
                            "Description of Pixel", "Estimated NDVI"),
               extensions = 'Buttons',
@@ -159,8 +158,24 @@ ndvi_func <- function(image, nir, red){
 # NDVI Creation
 #(Note: the band numbers here are based on 4-band composites that only include RGB and NIR)
 Planet_NDVI <- ndvi_func(Planet, 4, 3)
+Planet_NDVI <- Planet_NDVI - 0.4
+Planet_NDVI[Planet_NDVI < 0] <- 0
+
 Landsat_NDVI <- ndvi_func(Landsat, 4, 3)
+Landsat_NDVI[Landsat_NDVI < 0.02] <- -0.5
+Landsat_NDVI <- Landsat_NDVI + 0.5
+
+raster01 = function(r){
+
+# get the min max values
+  minmax_r = range(values(r), na.rm=TRUE) 
+
+# rescale 
+ return( (r-minmax_r[1]) / (diff(minmax_r)))
+}
+
 Sentinel_NDVI <- ndvi_func(Sentinel, 4, 3)
+Sentinel_NDVI[Sentinel_NDVI < 0] <- 0
 
 sentinel_pal <- colorNumeric(c("#FF0000", "#FFFF00", "#006400"),
                              values(Sentinel_NDVI),
