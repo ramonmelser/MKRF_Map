@@ -2,6 +2,7 @@
 title: "MGEM Mixed Pixel Lab"
 format:
   html:
+    embed-resources: true
     other-links:
       - text: Landsat Program
         href: https://landsat.gsfc.nasa.gov/
